@@ -129,7 +129,7 @@ def process_match_data(json_file, output_folder):
         player_id = player_id_map.get(player, player)  # Fallback to player name if ID is not found
 
         # Define player file path
-        player_file = os.path.join(output_folder, f"{player}.csv")
+        player_file = os.path.join(output_folder, f"{player_id}.csv")
         
         # Check if file exists, if not create it with header
         file_exists = os.path.isfile(player_file)
