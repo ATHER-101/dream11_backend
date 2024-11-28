@@ -105,6 +105,21 @@ def process_match_data(json_file, output_folder):
             if maidens_flag:
                 player_stats[bowler]["maidens"] += 1
 
+    # Add opponent playing XI
+    for player in player_stats:
+        team = player_stats[player]["team"]
+        opponent_team = teams[1] if teams[0] == team else teams[0]
+        opponent_playing_xi = data["info"]["players"].get(opponent_team, [])
+        for i, opponent_player in enumerate(opponent_playing_xi[:11]):
+            # Validate opponent player and assign default if missing
+            player_stats[player][f"player{i+1}"] = player_id_map.get(opponent_player, "Unknown_Player")
+
+        # Validate opponent player columns before writing
+        for i in range(11):
+            col_name = f"player{i+1}"
+            if not isinstance(player_stats[player][col_name], str):
+                player_stats[player][col_name] = "Unknown_Player"
+
     # Create 'player_data' folder if it does not exist
     os.makedirs(output_folder, exist_ok=True)
 
@@ -123,7 +138,10 @@ def process_match_data(json_file, output_folder):
             "date", "venue", "event", "match_type", "total_overs", "player_id", "team",
             "runs_scored", "balls_faced", "boundaries", 
             "sixes", "balls_bowled", "wickets", "runs_given", "bowled_lbw", 
-            "maidens", "catches", "stumpings", "run_outs", "batting_points", "bowling_points", "fielding_points", "total_fantasy_points"
+            "maidens", "catches", "stumpings", "run_outs", 
+            "batting_points", "bowling_points", "fielding_points", "total_fantasy_points",
+            "player1", "player2", "player3", "player4", "player5", "player6", 
+            "player7", "player8", "player9", "player10", "player11"
         ]
         
         # Open the player CSV file
@@ -137,9 +155,10 @@ def process_match_data(json_file, output_folder):
             batting_points, bowling_points, fielding_points, total_fantasy_points = fantasy_calculator(stats)
             
             # Prepare data for this row
-            row = [stats[col] if col in stats else 0 for col in header[:-4]]  # Exclude fantasy point columns
+            row = [stats[col] if col in stats else 0 for col in header[:-15]]  # Exclude fantasy point and opponent columns
             row[5] = player_id  # Replace with player_id (instead of player name)
             row.extend([batting_points, bowling_points, fielding_points, total_fantasy_points])
+            row.extend([stats.get(f"player{i+1}", "Unknown_Player") for i in range(11)])  # Add opponent columns
             writer.writerow(row)
 
 # Usage example
