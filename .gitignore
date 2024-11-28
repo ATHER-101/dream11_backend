@@ -1,3 +1,7 @@
 Data/__pycache__/
 Data/Datasets/*
 !Data/Datasets/*.zip
+!Data/Datasets/people.csv
+
+Server/node_modules/
+Server/.env
