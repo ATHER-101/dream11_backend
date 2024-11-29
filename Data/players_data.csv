@@ -1,0 +1,16 @@
+player_id,names,role,batting_style,bowling_style,image,batting_last_3_avg,batting_last_5_avg,batting_last_10_avg,batting_last_20_avg,batting_all_matches_avg,bowling_last_3_avg,bowling_last_5_avg,bowling_last_10_avg,bowling_last_20_avg,bowling_all_matches_avg,fielding_last_3_avg,fielding_last_5_avg,fielding_last_10_avg,fielding_last_20_avg,fielding_all_matches_avg
+4b0e3049,Alleyne,,,,,,,,,,,,,,,,,,,
+4b0e3049,A Alleyne,Bowling Allrounder,Right Handed Bat,Right-arm medium,https://static.cricbuzz.com/a/img/v1/152x152/i1/c254952/aaliyah-alleyne.jpg,,,,,,,,,,,,,,,
+6a58e069,A A Bamal,Bowler,Left Handed Bat,Left-arm orthodox,https://static.cricbuzz.com/a/img/v1/152x152/i1/c182026/arun-bamal.jpg,,,,,,,,,,,,,,,
+6a58e069,Arun Bamal,Bowler,Left Handed Bat,Left-arm orthodox,https://static.cricbuzz.com/a/img/v1/152x152/i1/c182026/arun-bamal.jpg,,,,,,,,,,,,,,,
+b690f34a,A A Barot,Batsman,Right Handed Bat,,https://static.cricbuzz.com/a/img/v1/152x152/i1/c169775/avi-barot.jpg,,,,,,,,,,,,,,,
+b690f34a,Avi Barot,Batsman,Right Handed Bat,,https://static.cricbuzz.com/a/img/v1/152x152/i1/c169775/avi-barot.jpg,,,,,,,,,,,,,,,
+44e58b5b,A A Chakraborty,,,,,,,,,,,,,,,,,,,
+44e58b5b,Abhijit Chakraborty,Bowler,Right Handed Bat,Left-arm orthodox,https://static.cricbuzz.com/a/img/v1/152x152/i1/c182026/abhijit-chakraborty.jpg,,,,,,,,,,,,,,,
+29d72eb2,A Chavan,Bowling Allrounder,Left Handed Bat,Left-arm orthodox,https://static.cricbuzz.com/a/img/v1/152x152/i1/c182026/ankeet-chavan.jpg,0.0,0.0,1.3,1.0769230769230769,1.0769230769230769,10.333333333333334,5.4,16.8,17.846153846153847,17.846153846153847,0.0,1.6,1.6,1.8461538461538465,1.8461538461538465
+4c931d56,Allan Donald,Batsman,Right Handed Bat,Right-arm fast,https://static.cricbuzz.com/a/img/v1/152x152/i1/c157340/allan-donald.jpg,,,,,,,,,,,,,,,
+797f52cc,AG Achar,Bowler,Right Handed Bat,Right-arm fast-medium,https://static.cricbuzz.com/a/img/v1/152x152/i1/c156165/ajit-agarkar.jpg,,,,,,,,,,,,,,,
+4ed49d3d,A Herwadkar,Batsman,Left Handed Bat,Right-arm offbreak,https://static.cricbuzz.com/a/img/v1/152x152/i1/c154670/akhil-herwadkar.jpg,,,,,,,,,,,,,,,
+2815fe50,A Jhunjhunwala,Batsman,Right Handed Bat,Right-arm offbreak,https://static.cricbuzz.com/a/img/v1/152x152/i1/c182026/abhishek-jhunjhunwala.jpg,7.333333333333333,5.4,6.9,11.65,11.904761904761903,13.666666666666666,8.2,4.1,2.05,1.6666666666666667,2.6666666666666665,3.2,6.0,5.4,5.142857142857143
+16605a1b,Abrar Kazi,Bowler,Left Handed Bat,Left-arm orthodox,https://static.cricbuzz.com/a/img/v1/152x152/i1/c182026/abrar-kazi.jpg,0.0,0.0,0.0,0.0,0.0,23.0,23.0,23.0,23.0,23.0,0.0,0.0,0.0,0.0,0.0
+8fa8c6e2,Arthur Mailey,Batsman,Right Handed Bat,Right-arm legbreak,https://static.cricbuzz.com/a/img/v1/152x152/i1/c182026/arthur-mailey.jpg,,,,,,,,,,,,,,,

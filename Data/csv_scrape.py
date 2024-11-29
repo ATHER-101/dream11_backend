@@ -1,55 +1,64 @@
 import csv
+import os
+import pandas as pd
+import time
 import requests
 from bs4 import BeautifulSoup
 import re
-import time
-import os
-import pandas as pd
 
-# Input and output file paths
-csv_file = "test.csv"
-output_file = "players_data_with_averages.csv"
-player_data_folder = "Datasets/ipl_json_processed"  # Folder containing player-specific CSV files
+# File paths
+csv_file = "Datasets/names.csv"
+output_file = "players_data.csv"
+player_data_folder = "Datasets/ipl_json_processed"
 
-# Dictionary to store player data
-players_data = {}
+# Check if the output file already exists
+if not os.path.exists(output_file):
+    # Create the file and write the header if it doesn't exist
+    with open(output_file, mode="w", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow([
+            "player_id",
+            "names",
+            "role",
+            "batting_style",
+            "bowling_style",
+            "image",
+            "batting_last_3_avg",
+            "batting_last_5_avg",
+            "batting_last_10_avg",
+            "batting_last_20_avg",
+            "batting_all_matches_avg",
+            "bowling_last_3_avg",
+            "bowling_last_5_avg",
+            "bowling_last_10_avg",
+            "bowling_last_20_avg",
+            "bowling_all_matches_avg",
+            "fielding_last_3_avg",
+            "fielding_last_5_avg",
+            "fielding_last_10_avg",
+            "fielding_last_20_avg",
+            "fielding_all_matches_avg",
+        ])
 
+# Read existing data from the output file to avoid duplicates
+try:
+    existing_data = pd.read_csv(output_file)
+    processed_ids = set(existing_data["player_id"].astype(str))
+except FileNotFoundError:
+    processed_ids = set()
 
-# Read the input CSV file
-with open(csv_file, mode="r") as file:
-    reader = csv.reader(file)
-    next(reader)  # Skip the header if present
-    for row in reader:
-        identifier, name = row
-
-        if identifier not in players_data:
-            players_data[identifier] = {
-                "identifier": identifier,
-                "names": set(),  # Use a set to avoid duplicate names
-                "role": None,
-                "batting_style": None,
-                "bowling_style": None,
-                "image": None,
-            }
-
-        players_data[identifier]["names"].add(name)
-
-
-# Function to scrape player details
+# Function to fetch player details
 def fetch_player_details(player_name):
     try:
         search_url = f"https://www.google.com/search?q={player_name}%20cricbuzz"
-        search_response = requests.get(search_url, timeout=10).text
-        search_page = BeautifulSoup(search_response, "lxml")
+        response = requests.get(search_url, timeout=10)
+        search_page = BeautifulSoup(response.text, "lxml")
         link_div = search_page.find("div", class_="kCrYT")
-
         if not link_div:
-            print(f"No link found for {player_name}")
             return None, None, None, None
 
         link = link_div.find("a", href=re.compile(r"[/]([a-z]|[A-Z])\w+"))
         if not link:
-            print(f"No valid Cricbuzz link found for {player_name}")
             return None, None, None, None
 
         cricbuzz_url = link["href"][7:]  # Remove '/url?q=' prefix
@@ -58,140 +67,80 @@ def fetch_player_details(player_name):
 
         profile_section = cricbuzz_page.find("div", class_="cb-col cb-col-100 cb-bg-grey")
         if not profile_section:
-            print(f"Profile section not found for {player_name}")
             return None, None, None, None
 
-        # Extract role
-        role_div = profile_section.find("div", text="Role")
-        role = role_div.find_next_sibling("div").text.strip() if role_div else None
+        # Extract data
+        role = profile_section.find("div", text="Role").find_next_sibling("div").text.strip() if profile_section.find("div", text="Role") else None
+        batting_style = profile_section.find("div", text="Batting Style").find_next_sibling("div").text.strip() if profile_section.find("div", text="Batting Style") else None
+        bowling_style = profile_section.find("div", text="Bowling Style").find_next_sibling("div").text.strip() if profile_section.find("div", text="Bowling Style") else None
+        image = cricbuzz_page.find("img", {"title": "profile image"})["src"] if cricbuzz_page.find("img", {"title": "profile image"}) else None
 
-        # Extract batting style
-        batting_style_div = profile_section.find("div", text="Batting Style")
-        batting_style = batting_style_div.find_next_sibling("div").text.strip() if batting_style_div else None
-
-        # Extract bowling style
-        bowling_style_div = profile_section.find("div", text="Bowling Style")
-        bowling_style = bowling_style_div.find_next_sibling("div").text.strip() if bowling_style_div else None
-
-        # Extract image URL
-        image_tag = cricbuzz_page.find("img", {"title": "profile image"})
-        image_url = image_tag["src"] if image_tag else None
-
-        return role, batting_style, bowling_style, image_url
-
+        return role, batting_style, bowling_style, image
     except Exception as e:
         print(f"Error fetching data for {player_name}: {e}")
         return None, None, None, None
 
-
-# Function to calculate player averages
+# Function to calculate averages
 def calculate_player_averages(player_id):
-    """
-    Calculate averages of batting, bowling, and fielding points for a player.
-    """
     file_path = os.path.join(player_data_folder, player_id + ".csv")
     try:
         df = pd.read_csv(file_path)
-    except FileNotFoundError:
-        return {
-            "batting_avg": {},
-            "bowling_avg": {},
-            "fielding_avg": {},
-            "error": f"File for player_id {player_id} not found at {file_path}",
-        }
+        df['date'] = pd.to_datetime(df['date'])
+        df.sort_values(by='date', inplace=True)
+    except Exception as e:
+        print(f"Error calculating averages for player {player_id}: {e}")
+        return {}
 
-    # Sort data by date
-    df['date'] = pd.to_datetime(df['date'])
-    df.sort_values(by='date', inplace=True)
-
-    # Columns of interest
-    point_columns = ['batting_points', 'bowling_points', 'fielding_points']
     averages = {}
-
-    for column in point_columns:
-        averages[column] = {}
-        for n in [3, 5, 10, 20]:
-            averages[column][f"last_{n}_avg"] = df[column].tail(n).mean()
+    for column in ['batting_points', 'bowling_points', 'fielding_points']:
+        averages[column] = {
+            f"last_{n}_avg": df[column].tail(n).mean()
+            for n in [3, 5, 10, 20]
+        }
         averages[column]["all_matches_avg"] = df[column].mean()
 
     return averages
 
+# Read input CSV and process players
+with open(csv_file, mode="r") as infile:
+    reader = csv.reader(infile)
+    next(reader)  # Skip header
+    for player_id, name in reader:
+        if player_id in processed_ids:
+            continue
 
-# Process each player and fetch data
-for identifier, data in players_data.items():
-    primary_name = next(iter(data["names"]))  # Use the first name as the primary search term
-    print(f"Fetching data for {primary_name}...")
-    retries = 3
-    while retries > 0:
-        role, batting_style, bowling_style, image = fetch_player_details(primary_name)
-        if any([role, batting_style, bowling_style, image]):
-            break
-        retries -= 1
-        print(f"Retrying for {primary_name}...")
-        time.sleep(2)  # Brief delay before retrying
+        print(f"Processing player: {name} (ID: {player_id})")
+        role, batting_style, bowling_style, image = fetch_player_details(name)
 
-    # Update player data
-    players_data[identifier].update({
-        "role": role,
-        "batting_style": batting_style,
-        "bowling_style": bowling_style,
-        "image": image,
-    })
+        averages = calculate_player_averages(player_id)
 
-    # Fetch player averages
-    averages = calculate_player_averages(identifier)
-    players_data[identifier].update(averages)
-
-    # Sleep to avoid getting blocked
-    time.sleep(5)
-
-# Write data to a new CSV file
-with open(output_file, mode="w", newline="") as csvfile:
-    fieldnames = [
-        "player_id",
-        "names",
-        "role",
-        "batting_style",
-        "bowling_style",
-        "image",
-        "batting_last_3_avg",
-        "batting_last_5_avg",
-        "batting_last_10_avg",
-        "batting_last_20_avg",
-        "batting_all_matches_avg",
-        "bowling_last_3_avg",
-        "bowling_last_5_avg",
-        "bowling_last_10_avg",
-        "bowling_last_20_avg",
-        "bowling_all_matches_avg",
-        "fielding_last_3_avg",
-        "fielding_last_5_avg",
-        "fielding_last_10_avg",
-        "fielding_last_20_avg",
-        "fielding_all_matches_avg",
-    ]
-    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-    writer.writeheader()
-
-    for player in players_data.values():
         row = {
-            "player_id": player["identifier"],
-            "names": ", ".join(player["names"]),
-            "role": player["role"],
-            "batting_style": player["batting_style"],
-            "bowling_style": player["bowling_style"],
-            "image": player["image"],
+            "player_id": player_id,
+            "names": name,
+            "role": role,
+            "batting_style": batting_style,
+            "bowling_style": bowling_style,
+            "image": image,
+            **{
+                f"batting_{key}": averages.get("batting_points", {}).get(key)
+                for key in ["last_3_avg", "last_5_avg", "last_10_avg", "last_20_avg", "all_matches_avg"]
+            },
+            **{
+                f"bowling_{key}": averages.get("bowling_points", {}).get(key)
+                for key in ["last_3_avg", "last_5_avg", "last_10_avg", "last_20_avg", "all_matches_avg"]
+            },
+            **{
+                f"fielding_{key}": averages.get("fielding_points", {}).get(key)
+                for key in ["last_3_avg", "last_5_avg", "last_10_avg", "last_20_avg", "all_matches_avg"]
+            },
         }
 
-        # Add averages to the row
-        for column in ["batting_points", "bowling_points", "fielding_points"]:
-            averages = player.get(column, {})
-            row[f"{column.split('_')[0]}_last_3_avg"] = averages.get("last_3_avg", None)
-            row[f"{column.split('_')[0]}_last_5_avg"] = averages.get("last_5_avg", None)
-            row[f"{column.split('_')[0]}_last_10_avg"] = averages.get("last_10_avg", None)
-            row[f"{column.split('_')[0]}_last_20_avg"] = averages.get("last_20_avg", None)
-            row[f"{column.split('_')[0]}_all_matches_avg"] = averages.get("all_matches_avg", None)
+        # Append the new data to the output file
+        with open(output_file, mode="a", newline="") as outfile:
+            writer = csv.DictWriter(outfile, fieldnames=row.keys())
+            writer.writerow(row)
 
-        writer.writerow(row)
+        # Delay to prevent rate-limiting
+        time.sleep(5)
 
-print(f"Data saved to {output_file}")
+print("Data collection completed.")
