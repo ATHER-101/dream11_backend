@@ -1,6 +1,6 @@
 const { Pool } = require('pg');
 require('dotenv').config();
-
+console.log(process.env.NEON_USER, process.env.NEON_HOST, process.env.NEON_DB);
 // PostgreSQL connection configuration
 const pool = new Pool({
   user: process.env.NEON_USER,
@@ -12,7 +12,10 @@ const pool = new Pool({
     require: true,
     rejectUnauthorized: false,
   },
+  idleTimeoutMillis: 30000, // 30 seconds
+  connectionTimeoutMillis: 5000, // 5 seconds
 });
+
 
 pool.connect((err) => {
   if (err) {

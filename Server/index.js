@@ -1,11 +1,12 @@
 const express = require('express');
 const pool = require('./db');
 require('dotenv').config();
-
+const cors = require('cors');
 // Access environment variables using process.env
 const port = process.env.PORT || 4000;
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
@@ -16,6 +17,7 @@ app.get('/', (req, res) => {
 app.get('/matches', async (req, res) => {
   // const { after_date } = req.query;
   const after_date = '2023-08-01';
+  const { limit } = req.query;
 
   // Validate the provided date
   if (!after_date) {
@@ -28,7 +30,7 @@ app.get('/matches', async (req, res) => {
       SELECT * 
       FROM matches
       WHERE date > $1
-      ORDER BY date ASC;
+      ORDER BY date ASC ${limit?`LIMIT ${limit}`:``};
     `;
     const result = await pool.query(query, [after_date]);
 
