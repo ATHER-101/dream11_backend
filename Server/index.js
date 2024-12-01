@@ -1,11 +1,12 @@
 const express = require('express');
 const pool = require('./db');
 require('dotenv').config();
-
+const cors = require('cors');
 // Access environment variables using process.env
 const port = process.env.PORT || 4000;
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 
 app.get('/', (req, res) => {
