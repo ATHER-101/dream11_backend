@@ -66,12 +66,24 @@ app.get('/match/:match_id', async (req, res) => {
     // Combine all player IDs from team1 and team2
     const playerIds = [...match.team1_players, ...match.team2_players];
 
-    // Query to fetch player details
+    // Query to fetch player details along with longest names
     const playersQuery = `
       SELECT 
-        player_id, role, batting_style, bowling_style, image
-      FROM players
-      WHERE player_id = ANY($1);
+        p.player_id,
+        pn.name, -- Fetch the longest name
+        p.role,
+        p.batting_style,
+        p.bowling_style,
+        p.image
+      FROM players p
+      JOIN (
+        SELECT DISTINCT ON (player_id) 
+          player_id, 
+          name
+        FROM player_names
+        ORDER BY player_id, LENGTH(name) DESC -- Select the longest name per player_id
+      ) pn ON p.player_id = pn.player_id
+      WHERE p.player_id = ANY($1);
     `;
     const playersResult = await pool.query(playersQuery, [playerIds]);
 
@@ -85,13 +97,14 @@ app.get('/match/:match_id', async (req, res) => {
         team1: match.team1,
         team2: match.team2,
       },
-      players: playersResult.rows, // All 22 players' details
+      players: playersResult.rows, // All 22 players' details with longest names
     });
   } catch (error) {
     console.error('Error fetching match details:', error.message);
     res.status(500).json({ error: 'An error occurred while fetching match details.' });
   }
 });
+
 
 
 app.listen(port, () => {
