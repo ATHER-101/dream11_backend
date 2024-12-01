@@ -12,7 +12,10 @@ const pool = new Pool({
     require: true,
     rejectUnauthorized: false,
   },
+  idleTimeoutMillis: 30000, // 30 seconds
+  connectionTimeoutMillis: 5000, // 5 seconds
 });
+
 
 pool.connect((err) => {
   if (err) {
