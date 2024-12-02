@@ -4,6 +4,7 @@ import time
 import requests
 from bs4 import BeautifulSoup
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Paths for the input CSV and output CSV
 csv_file = "players_data_new.csv"
@@ -69,14 +70,9 @@ missing_data = df[df[columns_to_check].isnull().any(axis=1)]
 
 print(f"Found {len(missing_data)} rows with missing data.")
 
-# Scrape for rows with missing data
-for index, row in missing_data.iterrows():
-    player_id = row["player_id"]
-    player_names = row["names"]
-
-    # Use the first name from the names list for scraping
-    primary_name = player_names.split(",")[0].strip()
-
+# Function to scrape and update player details in parallel
+def scrape_and_update(index, player_id, player_name):
+    primary_name = player_name.split(",")[0].strip()
     print(f"Scraping data for player: {primary_name} (ID: {player_id})")
 
     role, batting_style, bowling_style, image = fetch_player_details(primary_name)
@@ -97,5 +93,18 @@ for index, row in missing_data.iterrows():
 
     # Delay to avoid getting blocked
     time.sleep(2)
+
+# Create a ThreadPoolExecutor to parallelize the scraping
+with ThreadPoolExecutor(max_workers=10) as executor:  # Adjust max_workers as needed
+    futures = []
+    for index, row in missing_data.iterrows():
+        player_id = row["player_id"]
+        player_name = row["names"]
+        future = executor.submit(scrape_and_update, index, player_id, player_name)
+        futures.append(future)
+
+    # Wait for all futures to complete
+    for future in as_completed(futures):
+        future.result()
 
 print("Data scraping and update completed.")
