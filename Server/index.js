@@ -13,9 +13,11 @@ app.get('/', (req, res) => {
 
 const match = require("./api/match")
 const explain = require("./api/explain")
+const model = require("./api/model")
 
 app.use(match);
 app.use(explain);
+app.use(model);
 
 app.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`)
